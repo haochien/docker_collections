@@ -1,0 +1,52 @@
+version: "3.9"
+services:
+  # service name can be used as a reference in your code (even the real container name will be different than your service name here)
+  # like @mongodb:27017 in: `mongodb://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@mongodb:27017/course-goals?authSource=admin`
+  mongodb:
+    image: 'mongo'
+    volumes:
+      - data:/data/db
+    # force the container name to be what you want
+    # container_name: mongodb
+    # environment:
+    #   # MONGO_INITDB_ROOT_USERNAME: hao
+    #   - MONGO_INITDB_ROOT_USERNAME=hao
+    #   - MONGO_INITDB_ROOT_PASSWORD=secret
+    env_file:
+      - ./env/mongo.env
+  backend:
+    build: ./backend
+    # build: 
+    #   context: ./backend
+    #   dockerfile: Dockerfile
+    #   args:
+    #     some-arg: arg_value
+    ports:
+      - '80:80'
+    volumes:
+      # named volume
+      - logs:/app/logs
+      # can use relative path for bind mountS
+      - ./backend:/app
+      # anonymous volume
+      - /app/node_modules
+    env_file:
+      - ./env/backend.env
+    depends_on:
+      - mongodb
+  frontend:
+    build: ./frontend
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./frontend/src:/app/src
+    # for -it:
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+volumes:
+  # need to specify named volumes used in services (just volumes_name:)
+  data:
+  logs:
+
