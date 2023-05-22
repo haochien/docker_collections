@@ -1,5 +1,5 @@
 # docker-practice-nodejs-and-react
-This repo is a simple practice to set up docker for a multi-app application.
+This project is a simple practice to set up docker for a multi-app application.
 
 The frontend is React, backend is NodeJS, and DB is MongoDB
 
