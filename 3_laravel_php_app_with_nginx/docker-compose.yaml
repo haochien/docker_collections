@@ -9,7 +9,18 @@ services:
     volumes: 
       # using bind mount to paste our own nginx config into this web server container
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-  # php:
+  php:
+    build:
+      context: ./dockerfiles
+      dockerfile: php.dockerfile
+    volumes:
+      - ./src:/var/www/html:delegated
+    # if we want to interact with php container from host machine,
+    # we has configured listening port at 3000 in nginx.conf (fastcgi_pass php:3000;); 9000 is the internal port for php container
+    # And thus add ports:-'3000:9000'. But since nginx server container will directly talk to php container (via the same internal network),
+    # we do not need to define port here. BUT!! need to change the nginx.conf to (fastcgi_pass php:9000;)
+    # ports:
+    #   - '3000:9000'
   # mysql:
   # composer:
   # artisan:
