@@ -47,9 +47,44 @@ Thereafter, you can check whether Docker is available by running:
 docker version
 ```
 
-## 3. Deploy built image
+## 3. Deploy built image to vm
 Instead of using traditional way to deploy entire source, we can built the docker image, upload to the repository (e.g. Dockerhub), and download from vm.
 
 ### 3.1 create dockerhub repository:
 ![EC2_9](./img/EC2_9.png)
 
+### 3.2 build image for the source codes from the local machine:
+```bash
+docker build -t test_deploy_image_1 .
+docker tag test_deploy_image_1 xxhowchanxx/test_deploy_1
+
+docker login
+
+docker push xxhowchanxx/test_deploy_1
+```
+
+### 3.3 download image in vm
+log in to vm again and run
+```bash
+docker run -d --rm -p 80:80 xxhowchanxx/test_deploy_1
+```
+
+## 4. connect vm to www via Security Group setup in EC2 
+### 4.1. set up Inbound Rule for instance's Security group
+In default, vm only allow external to connect to it via ssh. (but the connection from vm inside to external has no limitation).
+
+We need to allow http connection:
+![EC2_11](./img/EC2_11.png)
+![EC2_12](./img/EC2_12.png)
+![EC2_13](./img/EC2_13.png)
+
+### 4.2. find the public ip of the vm
+find the public ip of the vm from EC2 instance page (public IPv4):
+![EC2_10](./img/EC2_10.png)
+
+And then you can browse your app via enter this ip address in your browser
+***
+Note: for practice, remember to stop instance while not using it.
+
+Or you can set up an inactive alarm: https://successengineer.medium.com/how-to-automatically-turn-off-your-ec2-instance-in-2021-b73374e51090
+***
