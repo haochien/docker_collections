@@ -3,17 +3,30 @@ version: "3.8"
 services: 
   server:
     # https://hub.docker.com/_/nginx
-    image: 'nginx:stable-alpine'
+    build:
+      # context not just define which folder the dockerfile can be found. It also sets the folder where the dockerfile will be built
+      # thus context here cannot be ./dockerfiles because there are 'COPY nginx/nginx.conf .' and 'COPY src .' in nginx.dockerfile.
+      # both are out of ./dockerfiles
+      context: .
+      dockerfile: dockerfiles/nginx.dockerfile
     ports: 
       - '8000:80'
     volumes: 
+      # need bind mount to connect web server and source codes (which is defined in nginx.cong: root /var/www/html/public;)
+      - ./src:/var/www/html
       # using bind mount to paste our own nginx config into this web server container
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # but do not simply rely on bind mount. This is ok for dev env. for prod, you should copy the file by dockerfile
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+      - mysql
   php:
+  # https://hub.docker.com/_/php
     build:
-      context: ./dockerfiles
-      dockerfile: php.dockerfile
+      context: .
+      dockerfile: dockerfiles/php.dockerfile
     volumes:
+      # do not simply rely on bind mount. This is ok for dev env. for prod, you should copy the file by dockerfile
       - ./src:/var/www/html:delegated
     # if we want to interact with php container from host machine,
     # we has configured listening port at 3000 in nginx.conf (fastcgi_pass php:3000;); 9000 is the internal port for php container
@@ -21,7 +34,30 @@ services:
     # we do not need to define port here. BUT!! need to change the nginx.conf to (fastcgi_pass php:9000;)
     # ports:
     #   - '3000:9000'
-  # mysql:
-  # composer:
-  # artisan:
-  # npm:
+  mysql:
+    # https://hub.docker.com/_/mysql 
+    image: mysql:5.7
+    env_file:
+      - ./env/mysql.env
+  composer:
+    # to create laravel app
+    build:
+      context: ./dockerfiles
+      dockerfile: composer.dockerfile
+    volumes:
+      - ./src:/var/www/html
+  artisan:
+    build:
+      context: .
+      dockerfile: dockerfiles/php.dockerfile
+    volumes:
+      - ./src:/var/www/html
+    # define entrypoint can create/overwrite the entrypoint in target image
+    entrypoint: ["php", "/var/www/html/artisan"]
+  npm:
+    # commands here can also be written directly in dockerfile
+    image: node:14
+    working_dir: /var/www/html
+    entrypoint: ['npm']
+    volumes:
+        - ./src:/var/www/html

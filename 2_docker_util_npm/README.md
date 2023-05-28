@@ -6,9 +6,9 @@ Suggest to use Docker and Docker Compose to run this app.
 
 
 ### Step 1.
-change directory to node_react_multi_app_1
+change directory to the target directory
 ```bash
-cd docker_util_2
+cd 2_docker_util
 ```
 
 ### Step 2.
