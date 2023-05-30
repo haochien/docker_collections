@@ -1,5 +1,11 @@
 
-# Virtual Machine: EC2
+# Manual Deploy via Own Virtual Machine (AWS EC2):
+You need to create a vm via AWS EC2 and manual deploy your docker image from your local machine to vm.
+
+PROs: full control on the virtual machine
+
+CONs: Process is manual, and you really have to know how to properly configure the vm for security, update, ...etc. 
+
 ## 1. launch instance
 ### 1.1 name instance
 ![EC2_1](./img/EC2_1.png)
@@ -7,18 +13,24 @@
 ![EC2_2](./img/EC2_2.png)
 ### 1.3. choose vm instance
 https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html
+
 ![EC2_3](./img/EC2_3.png)
 ### 1.4. network setting - define vpc 
 https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html
+
 ![EC2_4](./img/EC2_4.png)
 ### 1.5. create key pair
 key pair (will be a file in the end) is required to later connect to the vm instance via ssh 
+
 ![EC2_5](./img/EC2_5.png)
+
 ![EC2_6](./img/EC2_6.png)
 ### 1.6. Launch instance
 ### 1.7. Connect to instance from your local machine via ssh
 ![EC2_7](./img/EC2_7.png)
+
 ![EC2_8](./img/EC2_8.png)
+
 For windows, check this post regarding how to set permission of file equivalent to chmod 400: https://gist.github.com/jaskiratr/cfacb332bfdff2f63f535db7efb6df93
 
 ## 2. Install Docker in virtual Machine
@@ -66,6 +78,7 @@ docker push xxhowchanxx/test_deploy_1
 ### 3.3 download image in vm
 log in to vm again and run
 ```bash
+docker pull xxhowchanxx/test_deploy_1
 docker run -d --rm -p 80:80 xxhowchanxx/test_deploy_1
 ```
 
@@ -88,3 +101,69 @@ Note: for practice, remember to stop instance while not using it.
 
 Or you can set up an inactive alarm: https://successengineer.medium.com/how-to-automatically-turn-off-your-ec2-instance-in-2021-b73374e51090
 ***
+<br><br><br><br>
+
+# Manual Deploy via Managed Remote Machine (AWS ECS):
+ECS setup including: Cluster --> Service --> Task --> Container
+
+## 1. Set up ECS
+
+### 1.1. Define Cluster
+Cluster is an overall network for running the service
+
+![ECS_4](./img/ECS_4.png)
+
+
+### 1.2. Configure Task definition and Containers
+in this step, container config is similar to how you structure 'docker run' command.
+
+Task is similar to remote machine setup. And 1 task can have multiple container.
+
+![ECS_1](./img/ECS_1.png)
+
+![ECS_2](./img/ECS_2.png)
+
+Worth to mentioned here: in task, when choose Fargate as app environment, it's serverless. Unlike creating a EC2 instance, it only create a server and run the container when the corresponding request comes and stop when no requests. (thus cost effective) 
+
+![ECS_3](./img/ECS_3.png)
+
+
+### 1.3. create Service to execute Task
+![ECS_5](./img/ECS_5.png)
+
+![ECS_6](./img/ECS_6.png)
+
+Since our app is link from external port 80 to internal port 80 and by default the public IP does not expose port 80 to the public. To fix this you'll need to update the security group settings in Service:
+
+![ECS_7](./img/ECS_7.png)
+
+![ECS_8](./img/ECS_8.png)
+
+![ECS_9](./img/ECS_9.png)
+
+### 1.4. Find the public IP address and access the app
+In Task config, you can find public IP and use it to access the app from the browser.
+
+![ECS_10](./img/ECS_10.png)
+
+
+### 1.5. re-deploy update source codes
+You need to rebuild the image and push it to repository (e.g. dockerhub).
+
+Then create a revision in the Task (so the task will take the image with latest tag)
+
+![ECS_11](./img/ECS_11.png)
+
+Then update service by choosing the latest revision image (or you can use force new deployment option):
+
+![ECS_12](./img/ECS_12.png)
+
+![ECS_13](./img/ECS_13.png)
+
+Once it is updated, you can go to the new Task and find the public ip address for browsing
+
+![ECS_14](./img/ECS_14.png)
+
+
+
+
