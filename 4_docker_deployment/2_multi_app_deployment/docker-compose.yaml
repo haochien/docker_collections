@@ -18,5 +18,5 @@ services:
     depends_on:
       - mongodb
 
-volumes:
-  data:
+# volumes:
+#   data:
