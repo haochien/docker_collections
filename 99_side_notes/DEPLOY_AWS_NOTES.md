@@ -103,11 +103,10 @@ Or you can set up an inactive alarm: https://successengineer.medium.com/how-to-a
 ***
 <br><br><br><br>
 
-# Manual Deploy via Managed Remote Machine (AWS ECS):
+# Manual Deploy via Managed Remote Machine (AWS ECS) - Single App:
 ECS setup including: Cluster --> Service --> Task --> Container
 
 ## 1. Set up ECS
-
 ### 1.1. Define Cluster
 Cluster is an overall network for running the service
 
@@ -163,7 +162,60 @@ Then update service by choosing the latest revision image (or you can use force 
 Once it is updated, you can go to the new Task and find the public ip address for browsing
 
 ![ECS_14](./img/ECS_14.png)
+<br><br><br><br>
 
+# Manual Deploy via Managed Remote Machine (AWS ECS) - Multiple Apps:
+In this example, you have one node js backend app and one mongo db app
 
+## 0. Prepare images and push to Repository
+For ECS, few things need to be aware in the source code when dealing with multi containers:
 
+### a. Cannot use container name in source code to refer to IP address.
+Following codes are ok in dev, but won't work after deploy to ECS
+
+```javascript
+// in app.js: assume your mongo db container is named mongodb
+mongoose.connect(
+  `mongodb://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@mongodb:27017/course-goals?authSource=admin`,
+  ...
+);
+```
+When deploy to ECS, the containers won't necessarily be run in the same machine (thus not the same network).
+
+Unless the containers are run under the same ECS task, then you can use the same network (localhost ip) to connect different containers.
+
+Thus utilize environment variable to solve this issue
+
+```js
+// in app.js
+mongoose.connect(
+  `mongodb://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_URL}:27017/course-goals?authSource=admin`,
+  ...
+);
+
+// in .env file, configure the MONGODB_URL for dev you, and you need to do additional configuration for PROD:
+MONGODB_URL=mongodb
+
+// in Dockerfile:
+ENV MONGODB_URL=mongodb
+```
+
+## 1. Set up ECS
+### 1.1. Define Cluster
+### 1.2. Configure Task definition and Containers
+#### - configure 1st container node js backend in the task:
+You might need to add the env variables which are only used in PROD env:
+
+![ECS_15](./img/ECS_15.png)
+
+You might also want to configure PROD only docker cmd to override the dev one.
+
+(for example, you use nodemon package to run 'npm start', but you would like to run simply 'node app.js' in PROD)
+
+![ECS_16](./img/ECS_16.png)
+
+#### - configure 2nd container mongo db in the task:
+![ECS_17](./img/ECS_17.png)
+
+![ECS_18](./img/ECS_18.png)
 
