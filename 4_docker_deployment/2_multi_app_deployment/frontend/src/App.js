@@ -4,6 +4,8 @@ import GoalInput from './components/goals/GoalInput';
 import CourseGoals from './components/goals/CourseGoals';
 import ErrorAlert from './components/UI/ErrorAlert';
 
+// if run by "npm run start", it is 'development' environment, using localhost as url
+// if by "npm run build", then it is production env, using the load balancer ip as url
 const backendUrl =
   process.env.NODE_ENV === 'development'
     ? 'http://localhost'
@@ -19,6 +21,7 @@ function App() {
       setIsLoading(true);
 
       try {
+        // api call should be on env
         const response = await fetch(backendUrl + '/goals');
 
         const resData = await response.json();
@@ -44,6 +47,7 @@ function App() {
     setIsLoading(true);
 
     try {
+      // api call should be on env
       const response = await fetch(backendUrl + '/goals', {
         method: 'POST',
         body: JSON.stringify({
@@ -83,6 +87,7 @@ function App() {
     setIsLoading(true);
 
     try {
+      // api call should be on env
       const response = await fetch(backendUrl + '/goals/' + goalId, {
         method: 'DELETE',
       });

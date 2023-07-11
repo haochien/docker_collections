@@ -215,7 +215,11 @@ You might also want to configure PROD only docker cmd to override the dev one.
 ![ECS_16](./img/ECS_16.png)
 
 #### - configure 2nd container mongo db in the task:
+#### TODO: need update
 ![ECS_17](./img/ECS_17.png)
 
 ![ECS_18](./img/ECS_18.png)
 
+### 1.3. Set up frontend
+Since frontend itself is also stand along and has its own web server (from nginx) and listen on port 80.
+We cannot deploy backend and frontend in the same ECS task (Cannot have two different service listen on the same port for the same ip at the same time. Thus, with two task, we will have two ip for two port 80)
